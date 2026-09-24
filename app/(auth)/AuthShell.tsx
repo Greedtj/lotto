@@ -13,7 +13,7 @@ export function AuthShell({ mode }: { mode: Mode }) {
         <br />
         <span className="accent">แข่งกันแม่น</span>
       </h1>
-      <p className="muted">เลือกเลข 1 ชุดต่องวดจากสูตรสถิติ ถูกหมวดไหนได้ 1 แต้ม ใครแต้มเยอะสุดชนะ</p>
+      <p className="muted">เลือกเลข 1 ชุดต่องวด ถูกได้ 1 แต้ม ใครแต้มเยอะสุดก็...ไม่ได้อะไร</p>
       <hr className="rule" />
       <LoginForm mode={mode} />
     </main>

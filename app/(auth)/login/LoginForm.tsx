@@ -34,7 +34,7 @@ export function LoginForm({ mode }: { mode: Mode }) {
       <button className="btn btn--primary btn--block" disabled={pending} data-loading={pending}>
         {pending ? 'กำลังตรวจสอบ…' : mode === 'signin' ? 'เข้าสู่ระบบ' : 'สมัครและเข้าเล่น'}
       </button>
-      {mode === 'signin' && <p className="meta" style={{ marginTop: 'var(--space-md)' }}>ลืม PIN? ติดต่อ admin ให้รีเซ็ตให้</p>}
+      {mode === 'signin' && <p className="meta" style={{ marginTop: 'var(--space-md)' }}>ลืม PIN? ติดต่อ tjanmool@gmail.com</p>}
     </form>
   )
 }
