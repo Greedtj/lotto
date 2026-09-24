@@ -69,7 +69,8 @@ describe('generate', () => {
     for (const cdfs of Object.values(table)) {
       const s = generateSet(cdfs)
       expect(s.first).toMatch(/^\d{6}$/)
-      expect(s.top3).toMatch(/^\d{3}$/)
+      expect(s.top3).toBe(s.first.slice(-3)) // like a real ticket
+      expect(s.top2).toBe(s.first.slice(-2))
       expect(s.front3).toMatch(/^\d{3}$/)
       expect(s.last2).toMatch(/^\d{2}$/)
     }

@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "seed": "tsx --env-file=${ENV_FILE:-.env.local} scripts/seed.ts"
+    "seed": "tsx --env-file=${ENV_FILE:-.env.local} scripts/seed.ts",
+    "tune": "tsx scripts/tune.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",

@@ -11,7 +11,7 @@ export default function LoginPage() {
         <span>สูตรสถิติ × หวยรัฐบาล</span>
       </div>
       <h1 className="riso" style={{ fontSize: 'var(--text-display)', marginBottom: 'var(--space-lg)' }}>
-        สุ่มจากสูตร
+        เลขหรรษา
         <br />
         <span className="accent">แข่งกันแม่น</span>
       </h1>

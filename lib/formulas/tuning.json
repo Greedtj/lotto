@@ -1,0 +1,686 @@
+{
+ "generatedAt": "2026-09-24T08:02:00.515Z",
+ "periods": {
+  "train": [
+   "0000",
+   "2016-01-01"
+  ],
+  "val": [
+   "2016-01-01",
+   "2021-01-01"
+  ],
+  "test": [
+   "2021-01-01",
+   "9999"
+  ]
+ },
+ "draws": 878,
+ "formulas": {
+  "random": {
+   "defaults": {
+    "tau": 1
+   },
+   "best": {
+    "tau": 1
+   },
+   "passesRule": false,
+   "reason": "แพ้ค่าเดิมในช่วงเลือก (จูนแล้วจำ noise)",
+   "default": {
+    "train": {
+     "score": 0,
+     "ratio": {
+      "first": 1,
+      "top3": 1,
+      "top2": 1,
+      "back3": 1,
+      "last2": 1
+     }
+    },
+    "val": {
+     "score": 0,
+     "ratio": {
+      "first": 1,
+      "top3": 1,
+      "top2": 1,
+      "front3": 1,
+      "back3": 1,
+      "last2": 1
+     }
+    },
+    "test": {
+     "score": 0,
+     "ratio": {
+      "first": 1,
+      "top3": 1,
+      "top2": 1,
+      "front3": 1,
+      "back3": 1,
+      "last2": 1
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": 0,
+     "ratio": {
+      "first": 1,
+      "top3": 1,
+      "top2": 1,
+      "back3": 1,
+      "last2": 1
+     }
+    },
+    "val": {
+     "score": 0,
+     "ratio": {
+      "first": 1,
+      "top3": 1,
+      "top2": 1,
+      "front3": 1,
+      "back3": 1,
+      "last2": 1
+     }
+    },
+    "test": {
+     "score": 0,
+     "ratio": {
+      "first": 1,
+      "top3": 1,
+      "top2": 1,
+      "front3": 1,
+      "back3": 1,
+      "last2": 1
+     }
+    }
+   },
+   "testZvsRandom": 0,
+   "testZvsDefault": 0,
+   "tried": 1
+  },
+  "hot": {
+   "defaults": {
+    "prior": 1,
+    "tau": 1
+   },
+   "best": {
+    "prior": 20,
+    "tau": 0.5
+   },
+   "passesRule": true,
+   "reason": "ชนะค่าเดิมทั้งช่วงเลือกและช่วงทดสอบ",
+   "default": {
+    "train": {
+     "score": -0.07748,
+     "ratio": {
+      "first": 1.008,
+      "top3": 0.996,
+      "top2": 0.991,
+      "back3": 1.006,
+      "last2": 1.012
+     }
+    },
+    "val": {
+     "score": -0.0722,
+     "ratio": {
+      "first": 0.996,
+      "top3": 0.961,
+      "top2": 0.978,
+      "front3": 1.023,
+      "back3": 0.982,
+      "last2": 1.003
+     }
+    },
+    "test": {
+     "score": -0.06423,
+     "ratio": {
+      "first": 0.997,
+      "top3": 0.953,
+      "top2": 0.99,
+      "front3": 0.999,
+      "back3": 1.017,
+      "last2": 0.998
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": -0.00132,
+     "ratio": {
+      "first": 1.003,
+      "top3": 1,
+      "top2": 0.999,
+      "back3": 1,
+      "last2": 1
+     }
+    },
+    "val": {
+     "score": -0.00305,
+     "ratio": {
+      "first": 0.997,
+      "top3": 0.998,
+      "top2": 0.997,
+      "front3": 1.001,
+      "back3": 0.998,
+      "last2": 1
+     }
+    },
+    "test": {
+     "score": -0.00199,
+     "ratio": {
+      "first": 0.999,
+      "top3": 0.998,
+      "top2": 0.998,
+      "front3": 1,
+      "back3": 1.001,
+      "last2": 1
+     }
+    }
+   },
+   "testZvsRandom": -0.95,
+   "testZvsDefault": 5.29,
+   "tried": 24
+  },
+  "cold": {
+   "defaults": {
+    "beta": 1,
+    "tau": 1
+   },
+   "best": {
+    "beta": 0.25,
+    "tau": 0.5
+   },
+   "passesRule": true,
+   "reason": "ชนะค่าเดิมทั้งช่วงเลือกและช่วงทดสอบ",
+   "default": {
+    "train": {
+     "score": -0.82942,
+     "ratio": {
+      "first": 0.675,
+      "top3": 0.997,
+      "top2": 0.968,
+      "back3": 1.009,
+      "last2": 1.001
+     }
+    },
+    "val": {
+     "score": -0.63481,
+     "ratio": {
+      "first": 0.595,
+      "top3": 1.027,
+      "top2": 0.983,
+      "front3": 1,
+      "back3": 1,
+      "last2": 1.004
+     }
+    },
+    "test": {
+     "score": -0.7828,
+     "ratio": {
+      "first": 0.649,
+      "top3": 1.028,
+      "top2": 0.88,
+      "front3": 0.997,
+      "back3": 1.039,
+      "last2": 0.976
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": -0.02309,
+     "ratio": {
+      "first": 0.967,
+      "top3": 0.999,
+      "top2": 0.988,
+      "back3": 1.001,
+      "last2": 1.003
+     }
+    },
+    "val": {
+     "score": -0.00789,
+     "ratio": {
+      "first": 1.017,
+      "top3": 1,
+      "top2": 0.999,
+      "front3": 1.001,
+      "back3": 1.002,
+      "last2": 1.001
+     }
+    },
+    "test": {
+     "score": -0.0241,
+     "ratio": {
+      "first": 0.946,
+      "top3": 1.004,
+      "top2": 0.977,
+      "front3": 1,
+      "back3": 1.005,
+      "last2": 1.004
+     }
+    }
+   },
+   "testZvsRandom": -3.65,
+   "testZvsDefault": 16.54,
+   "tried": 24
+  },
+  "moving_avg": {
+   "defaults": {
+    "window": 100,
+    "prior": 1,
+    "tau": 1
+   },
+   "best": {
+    "window": 25,
+    "prior": 2,
+    "tau": 0.5
+   },
+   "passesRule": true,
+   "reason": "ชนะค่าเดิมทั้งช่วงเลือกและช่วงทดสอบ",
+   "default": {
+    "train": {
+     "score": -0.1072,
+     "ratio": {
+      "first": 1.009,
+      "top3": 1.006,
+      "top2": 1.031,
+      "back3": 1.002,
+      "last2": 0.98
+     }
+    },
+    "val": {
+     "score": -0.09296,
+     "ratio": {
+      "first": 0.979,
+      "top3": 1.01,
+      "top2": 1,
+      "front3": 1.015,
+      "back3": 0.977,
+      "last2": 1.034
+     }
+    },
+    "test": {
+     "score": -0.09685,
+     "ratio": {
+      "first": 1.013,
+      "top3": 0.989,
+      "top2": 1.062,
+      "front3": 1.007,
+      "back3": 1.001,
+      "last2": 0.945
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": -0.00699,
+     "ratio": {
+      "first": 1.057,
+      "top3": 1.001,
+      "top2": 1.016,
+      "back3": 1,
+      "last2": 1.002
+     }
+    },
+    "val": {
+     "score": -0.0169,
+     "ratio": {
+      "first": 0.984,
+      "top3": 1.004,
+      "top2": 1.007,
+      "front3": 0.999,
+      "back3": 1.002,
+      "last2": 0.994
+     }
+    },
+    "test": {
+     "score": -0.01531,
+     "ratio": {
+      "first": 0.983,
+      "top3": 1.001,
+      "top2": 1.023,
+      "front3": 0.999,
+      "back3": 0.998,
+      "last2": 0.998
+     }
+    }
+   },
+   "testZvsRandom": -2.22,
+   "testZvsDefault": 5.21,
+   "tried": 52
+  },
+  "markov": {
+   "defaults": {
+    "prior": 1,
+    "tau": 1
+   },
+   "best": {
+    "prior": 20,
+    "tau": 0.5
+   },
+   "passesRule": true,
+   "reason": "ชนะค่าเดิมทั้งช่วงเลือกและช่วงทดสอบ",
+   "default": {
+    "train": {
+     "score": -0.2307,
+     "ratio": {
+      "first": 0.973,
+      "top3": 0.984,
+      "top2": 0.993,
+      "back3": 1.003,
+      "last2": 1.007
+     }
+    },
+    "val": {
+     "score": -0.16677,
+     "ratio": {
+      "first": 0.946,
+      "top3": 0.985,
+      "top2": 0.991,
+      "front3": 1.024,
+      "back3": 1.002,
+      "last2": 0.982
+     }
+    },
+    "test": {
+     "score": -0.14457,
+     "ratio": {
+      "first": 0.955,
+      "top3": 0.972,
+      "top2": 0.969,
+      "front3": 0.975,
+      "back3": 0.999,
+      "last2": 1.009
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": -0.00244,
+     "ratio": {
+      "first": 0.997,
+      "top3": 0.999,
+      "top2": 0.999,
+      "back3": 1.001,
+      "last2": 1.001
+     }
+    },
+    "val": {
+     "score": -0.00672,
+     "ratio": {
+      "first": 0.981,
+      "top3": 0.996,
+      "top2": 0.998,
+      "front3": 1.002,
+      "back3": 1.001,
+      "last2": 0.999
+     }
+    },
+    "test": {
+     "score": -0.00764,
+     "ratio": {
+      "first": 0.984,
+      "top3": 0.991,
+      "top2": 0.996,
+      "front3": 0.998,
+      "back3": 1,
+      "last2": 1.003
+     }
+    }
+   },
+   "testZvsRandom": -1.95,
+   "testZvsDefault": 5.94,
+   "tried": 24
+  },
+  "ewma": {
+   "defaults": {
+    "alpha": 0.05,
+    "tau": 1
+   },
+   "best": {
+    "alpha": 0.01,
+    "tau": 0.5
+   },
+   "passesRule": true,
+   "reason": "ชนะค่าเดิมทั้งช่วงเลือกและช่วงทดสอบ",
+   "default": {
+    "train": {
+     "score": -0.92764,
+     "ratio": {
+      "first": 1.155,
+      "top3": 1.138,
+      "top2": 1.268,
+      "back3": 1.016,
+      "last2": 0.979
+     }
+    },
+    "val": {
+     "score": -0.99134,
+     "ratio": {
+      "first": 0.778,
+      "top3": 1.317,
+      "top2": 1.04,
+      "front3": 0.908,
+      "back3": 0.988,
+      "last2": 0.981
+     }
+    },
+    "test": {
+     "score": -1.00182,
+     "ratio": {
+      "first": 1.04,
+      "top3": 1.046,
+      "top2": 1.36,
+      "front3": 0.919,
+      "back3": 0.914,
+      "last2": 0.932
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": -0.15402,
+     "ratio": {
+      "first": 1.019,
+      "top3": 1.017,
+      "top2": 1.023,
+      "back3": 1.009,
+      "last2": 0.999
+     }
+    },
+    "val": {
+     "score": -0.16652,
+     "ratio": {
+      "first": 0.996,
+      "top3": 1.001,
+      "top2": 0.993,
+      "front3": 1.052,
+      "back3": 0.97,
+      "last2": 1.003
+     }
+    },
+    "test": {
+     "score": -0.16732,
+     "ratio": {
+      "first": 1.004,
+      "top3": 0.953,
+      "top2": 1.053,
+      "front3": 0.987,
+      "back3": 0.981,
+      "last2": 0.984
+     }
+    }
+   },
+   "testZvsRandom": -8.25,
+   "testZvsDefault": 19.84,
+   "tried": 24
+  },
+  "bayes_digit": {
+   "defaults": {
+    "prior": 1,
+    "decay": 0,
+    "tau": 1
+   },
+   "best": {
+    "prior": 20,
+    "decay": 0.02,
+    "tau": 0.5
+   },
+   "passesRule": true,
+   "reason": "ชนะค่าเดิมทั้งช่วงเลือกและช่วงทดสอบ",
+   "default": {
+    "train": {
+     "score": -0.03384,
+     "ratio": {
+      "first": 1.008,
+      "top3": 1.013,
+      "top2": 1.008,
+      "back3": 1.007,
+      "last2": 1.024
+     }
+    },
+    "val": {
+     "score": -0.01868,
+     "ratio": {
+      "first": 0.996,
+      "top3": 1.016,
+      "top2": 1.011,
+      "front3": 0.992,
+      "back3": 0.999,
+      "last2": 1.026
+     }
+    },
+    "test": {
+     "score": -0.02009,
+     "ratio": {
+      "first": 0.997,
+      "top3": 1.005,
+      "top2": 1.002,
+      "front3": 0.985,
+      "back3": 1.002,
+      "last2": 0.996
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": 0.00216,
+     "ratio": {
+      "first": 1.008,
+      "top3": 1.003,
+      "top2": 1.003,
+      "back3": 1.003,
+      "last2": 1.001
+     }
+    },
+    "val": {
+     "score": -0.00128,
+     "ratio": {
+      "first": 0.996,
+      "top3": 1,
+      "top2": 1.003,
+      "front3": 0.999,
+      "back3": 0.999,
+      "last2": 1.002
+     }
+    },
+    "test": {
+     "score": 0.00026,
+     "ratio": {
+      "first": 1.003,
+      "top3": 1.006,
+      "top2": 1.008,
+      "front3": 0.996,
+      "back3": 1.001,
+      "last2": 0.996
+     }
+    }
+   },
+   "testZvsRandom": 0.1,
+   "testZvsDefault": 2.22,
+   "tried": 48
+  },
+  "poisson_gap": {
+   "defaults": {
+    "prior": 1,
+    "tau": 1
+   },
+   "best": {
+    "prior": 1,
+    "tau": 0.5
+   },
+   "passesRule": true,
+   "reason": "ชนะค่าเดิมทั้งช่วงเลือกและช่วงทดสอบ",
+   "default": {
+    "train": {
+     "score": -0.39844,
+     "ratio": {
+      "first": 0.898,
+      "top3": 0.994,
+      "top2": 0.96,
+      "back3": 1.004,
+      "last2": 1.016
+     }
+    },
+    "val": {
+     "score": -0.2984,
+     "ratio": {
+      "first": 0.86,
+      "top3": 0.98,
+      "top2": 0.974,
+      "front3": 1.023,
+      "back3": 0.998,
+      "last2": 0.975
+     }
+    },
+    "test": {
+     "score": -0.39816,
+     "ratio": {
+      "first": 0.78,
+      "top3": 0.988,
+      "top2": 0.919,
+      "front3": 1.001,
+      "back3": 1.059,
+      "last2": 1.012
+     }
+    }
+   },
+   "tuned": {
+    "train": {
+     "score": -0.12516,
+     "ratio": {
+      "first": 0.93,
+      "top3": 0.996,
+      "top2": 0.968,
+      "back3": 1.002,
+      "last2": 1.01
+     }
+    },
+    "val": {
+     "score": -0.08032,
+     "ratio": {
+      "first": 1,
+      "top3": 0.987,
+      "top2": 0.988,
+      "front3": 1.012,
+      "back3": 1,
+      "last2": 0.994
+     }
+    },
+    "test": {
+     "score": -0.12978,
+     "ratio": {
+      "first": 0.856,
+      "top3": 0.996,
+      "top2": 0.941,
+      "front3": 1.002,
+      "back3": 1.027,
+      "last2": 1.009
+     }
+    }
+   },
+   "testZvsRandom": -6.49,
+   "testZvsDefault": 13.38,
+   "tried": 24
+  }
+ }
+}

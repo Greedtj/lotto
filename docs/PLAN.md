@@ -13,8 +13,8 @@
 | Stack | Next.js (App Router) + TypeScript ทั้งหมด · Supabase Postgres · Vercel |
 | ผลหวยงวดใหม่ | Vercel Cron ดึงจาก API กองสลาก (glo.or.th) + admin กดดึงเอง/กรอกเอง |
 | วิธีสุ่ม | สุ่มตามน้ำหนักของสูตร (สุ่มจาก distribution ของสูตร ไม่ใช่เอาอันดับ 1) |
-| 1 ชุด | 6 หมวด สุ่มแยกกัน: **รางวัลที่ 1 · 3 ตัวบน · 2 ตัวบน · 3 ตัวหน้า · 3 ตัวท้าย · 2 ตัวล่าง** |
-| สุ่มใหม่ | สูตรละ **3 ครั้ง/งวด** นับที่ server (ปรับได้ใน env `ROLLS_PER_FORMULA`) |
+| 1 ชุด | เหมือนสลากจริง: สุ่ม **รางวัลที่ 1 · 3 ตัวหน้า · 3 ตัวท้าย · 2 ตัวล่าง** · 3 ตัวบน / 2 ตัวบน = ท้ายของรางวัลที่ 1 (แก้ 2026-09-24) · ยังคิดแต้ม 6 หมวด |
+| สุ่ม | **วันละ 1 ครั้ง** (00:00 เวลาไทย) กดครั้งเดียวได้ครบ 8 สูตร · บังคับที่ DB (แก้ 2026-09-24 แทน 3 ครั้ง/สูตร/งวด) |
 | แก้เลขเอง | ไม่ได้ ต้องมาจากสูตรเท่านั้น ทุกชุดบันทึกว่ามาจากสูตรไหน |
 | เก็บชุด | 1 ชุด/คน/งวด · กดเลือกครั้งแรก = create · ครั้งต่อไป = update |
 | ปิดรับ | วันหวยออก **14:00 น. (เวลาไทย)** จนกว่าผลจะเข้าระบบ แล้วเปิดรับงวดถัดไปทันที |
@@ -181,6 +181,11 @@ lotto/
 
 **วัดผล:** log เวลาของ roll/pick action · เป้าหมาย: กดสุ่ม < 300 ms (ไม่นับ cold start) เช็คด้วย Vercel logs หลัง deploy
 
+**ผลวัดจริงบน production (2026-09-24, sin1 ↔ Supabase ap-southeast-1):**
+- `use cache` ใน Server Action ไม่ hit บน Vercel (อ่าน cache ~60–300ms เท่ากับ query ใหม่) → เปลี่ยน P2 เป็น memo ใน instance ของ function คีย์ด้วย `max(updated_at)` ของผลหวย
+- roll: 250–380ms → **~117ms** (เครื่องอุ่น), ~340ms ครั้งแรกของ instance · pick: **~50ms**
+- เวลาที่เหลือ = 2 query ขนาน (ตารางงวด + version) ~60ms + insert ~50ms · ลดต่อได้ถ้ารวมเป็น RPC เดียว
+
 ---
 
 ## 9. ขั้นตอน (แต่ละขั้นมีวิธีเช็ค)
@@ -195,4 +200,4 @@ lotto/
 | 5 | Deploy: เชื่อม Supabase ผ่าน Vercel Marketplace, env, cron · ทดสอบเรียก GLO จาก Vercel | ใช้งานจริงบนมือถือได้ครบ flow | vercel:marketplace, deployments-cicd |
 | 6 | `git init` + `gh repo create` + push | **ทำเมื่อคุณสั่งเท่านั้น** | — |
 
-**Env ที่ต้องใช้:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_SECRET`, `CRON_SECRET`, `ADMIN_USERNAMES`, `ROLLS_PER_FORMULA=3`
+**Env ที่ต้องใช้:** `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_SECRET`, `CRON_SECRET`, `ADMIN_USERNAMES` (+ `ADMIN_PIN` ตอน seed)

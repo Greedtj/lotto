@@ -7,6 +7,7 @@ import { db } from '@/lib/db'
 import { FORMULAS, FORMULA_IDS } from '@/lib/formulas'
 import { thaiDate } from '@/lib/format'
 import { binomSf, type BacktestTable } from '@/lib/lottery/backtest'
+import tuning from '@/lib/formulas/tuning.json'
 import { ActionForm } from './ActionForm'
 
 export const metadata: Metadata = { title: 'Admin' }
@@ -150,6 +151,62 @@ async function Admin() {
           </div>
         )}
       </section>
+
+      <Tuning />
     </>
+  )
+}
+
+type TuneRow = {
+  defaults: Record<string, number>
+  best: Record<string, number>
+  passesRule: boolean
+  reason: string
+  default: Record<'train' | 'val' | 'test', { score: number }>
+  tuned: Record<'train' | 'val' | 'test', { score: number }>
+  testZvsRandom: number
+  tried: number
+}
+
+/** Offline tuning report (npm run tune). Production keeps default params — decision 2026-09-24. */
+function Tuning() {
+  const rows = tuning.formulas as Record<string, TuneRow>
+  const fmt = (p: Record<string, number>) => Object.entries(p).map(([k, v]) => `${k}=${v}`).join(' ')
+  const sc = (x: number) => (x >= 0 ? '+' : '') + x.toFixed(3)
+  return (
+    <section>
+      <hr className="rule" />
+      <h2 className="title">ผลจูนสูตร</h2>
+      <p className="meta">
+        จูน ≤2015 · เลือก 2016–2020 · ทดสอบ 2021+ (ดูครั้งเดียว) · คะแนน = log(โอกาสถูกของสูตร ÷ สุ่มล้วน) เฉลี่ย 6 หมวด · 0 = เท่าสุ่ม
+        · สร้างเมื่อ {new Date(tuning.generatedAt).toLocaleDateString('th-TH', { timeZone: 'Asia/Bangkok' })} · <b>production ใช้ค่าเดิม</b>
+      </p>
+      <ul className="list">
+        {FORMULA_IDS.filter((id) => id !== 'random').map((id) => {
+          const r = rows[id]
+          return (
+            <li key={id}>
+              <div className="row">
+                <b>{FORMULAS[id].name}</b>
+                <span className="meta">ลอง {r.tried} ชุด</span>
+              </div>
+              <p className="meta" style={{ margin: 'var(--space-2xs) 0' }}>
+                ค่าเดิม {fmt(r.defaults)} → ดีสุด {fmt(r.best)}
+              </p>
+              <div className="nums">
+                {(['train', 'val', 'test'] as const).map((p) => (
+                  <span key={p}>
+                    {{ train: 'จูน', val: 'เลือก', test: 'ทดสอบ' }[p]} {sc(r.default[p].score)} → <b>{sc(r.tuned[p].score)}</b>
+                  </span>
+                ))}
+              </div>
+              <p className="meta" style={{ margin: 'var(--space-2xs) 0 0' }}>
+                {r.reason} · ทดสอบเทียบสุ่ม z = {r.testZvsRandom}
+              </p>
+            </li>
+          )
+        })}
+      </ul>
+    </section>
   )
 }

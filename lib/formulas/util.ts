@@ -1,12 +1,21 @@
-// Shared helpers. A formula is f(history, K) -> probability vector of length K (sums to 1, no zeros).
+// Shared helpers. A formula is f(history, K, params) -> probability vector of length K (sums to 1, no zeros).
 // history: one list of values per draw, oldest first (most targets have 1 value per draw).
-export type Formula = (history: number[][], K: number) => number[]
+export type Params = Record<string, number>
+export type Formula = (history: number[][], K: number, p: Params) => number[]
 
 /** Normalize and mix in a little uniform so no value is ever impossible. */
 export function norm(w: number[], eps = 1e-3): number[] {
   const s = w.reduce((a, b) => a + b, 0)
   const K = w.length
   return s > 0 ? w.map((x) => ((1 - eps) * x) / s + eps / K) : w.map(() => 1 / K)
+}
+
+/** Temperature: tau > 1 sharpens toward the formula's favourites, tau < 1 flattens toward random. tau = 1 is a no-op. */
+export function temper(p: number[], tau: number): number[] {
+  if (tau === 1) return p
+  const w = p.map((x) => x ** tau)
+  const s = w.reduce((a, b) => a + b, 0)
+  return w.map((x) => x / s)
 }
 
 export function digits(v: number, nd: number): number[] {

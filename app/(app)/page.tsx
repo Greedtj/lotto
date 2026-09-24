@@ -11,7 +11,7 @@ export default function PlayPage() {
     <main className="page">
       <div className="masthead">
         <span>สุ่มเลข</span>
-        <span>1 ชุดต่องวด</span>
+        <span>วันละ 1 ครั้ง · 1 ชุดต่องวด</span>
       </div>
       <Suspense fallback={<p className="meta">กำลังโหลด…</p>}>
         <Board />
@@ -20,18 +20,13 @@ export default function PlayPage() {
   )
 }
 
-const LIMIT = Number(process.env.ROLLS_PER_FORMULA ?? 3)
-
 async function Board() {
   const player = await requirePlayer()
   const w = pickWindow((await getScheduledDraws()).map((date) => ({ date, resulted: false })), new Date())
   const draw = w.state === 'none' ? null : w.draw
-  const mine = draw ? await getMyDraw(player.id, draw) : { rolls: [], pick: null }
+  const mine = draw ? await getMyDraw(player.id, draw) : { rolls: new Map(), pick: null, rolledToday: false }
 
-  const cards: FormulaCard[] = FORMULA_IDS.map((id) => {
-    const rolls = mine.rolls.filter((r) => r.formula === id)
-    return { id, name: FORMULAS[id].name, desc: FORMULAS[id].desc, latest: rolls.at(-1) ?? null, used: rolls.length }
-  })
+  const cards: FormulaCard[] = FORMULA_IDS.map((id) => ({ id, name: FORMULAS[id].name, desc: FORMULAS[id].desc, latest: mine.rolls.get(id) ?? null }))
 
   return (
     <>
@@ -41,7 +36,7 @@ async function Board() {
       <Play
         key={draw ?? 'none'}
         cards={cards}
-        limit={LIMIT}
+        rolledToday={mine.rolledToday}
         picked={mine.pick ? { rollId: mine.pick.roll_id, formula: FORMULAS[mine.pick.formula].name, numbers: mine.pick.numbers } : null}
         window={w.state === 'open' ? { state: 'open', closesAt: w.closesAt.toISOString() } : w.state === 'waiting' ? { state: 'waiting', draw: w.draw } : { state: 'none' }}
       />

@@ -1,18 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import draws from '@/research/draws.json'
 import parity from './fixtures/parity.json'
-import { FORMULAS, FORMULA_IDS } from '@/lib/formulas'
+import { distribution, FORMULAS, FORMULA_IDS } from '@/lib/formulas'
 import { series, TARGETS, type DrawResult } from '@/lib/lottery/targets'
 
 const all = draws as DrawResult[]
 
 describe('formulas', () => {
-  it('match the Python prototype on single-value targets', () => {
+  it('match the Python prototype with default params', () => {
     const sub = all.slice(0, parity.n_draws)
     for (const id of FORMULA_IDS) {
       for (const [t, want] of Object.entries((parity.dists as Record<string, Record<string, number[]>>)[id])) {
         const { history, K } = series(sub, t)
-        const got = FORMULAS[id].f(history, K)
+        const got = distribution(id, history, K, FORMULAS[id].defaults)
         got.forEach((x, i) => expect(x, `${id}/${t}[${i}]`).toBeCloseTo(want[i], 10))
       }
     }
@@ -22,7 +22,7 @@ describe('formulas', () => {
     for (const id of FORMULA_IDS) {
       for (const t of Object.keys(TARGETS)) {
         const { history, K } = series(all, t)
-        const p = FORMULAS[id].f(history, K)
+        const p = distribution(id, history, K)
         expect(p.length).toBe(K)
         expect(Math.min(...p)).toBeGreaterThan(0)
         expect(p.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 9)
@@ -41,7 +41,16 @@ describe('formulas', () => {
 
   it('markov with several values per draw averages the rows of the last draw', () => {
     // 1-digit K=10: last draw {1,2}; transitions seen 1->3 and 2->3
-    const p = FORMULAS.markov.f([[1, 2], [3], [1, 2]], 10)
+    const p = distribution('markov', [[1, 2], [3], [1, 2]], 10, FORMULAS.markov.defaults)
     expect(p.indexOf(Math.max(...p))).toBe(3)
+  })
+  it('temperature sharpens / flattens without changing the ranking', () => {
+    const { history, K } = series(all, 'last2')
+    const base = distribution('hot', history, K, { prior: 1, tau: 1 })
+    const sharp = distribution('hot', history, K, { prior: 1, tau: 4 })
+    const top = base.indexOf(Math.max(...base))
+    expect(sharp.indexOf(Math.max(...sharp))).toBe(top)
+    expect(sharp[top]).toBeGreaterThan(base[top])
+    expect(sharp.reduce((a, b) => a + b, 0)).toBeCloseTo(1, 9)
   })
 })

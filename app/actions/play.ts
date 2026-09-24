@@ -3,22 +3,20 @@ import { updateTag } from 'next/cache'
 import { requirePlayer } from '@/lib/auth'
 import { getCdfTable, getScheduledDraws, TAG } from '@/lib/data'
 import { db } from '@/lib/db'
-import { isFormulaId, type FormulaId } from '@/lib/formulas'
+import { FORMULA_IDS, type FormulaId } from '@/lib/formulas'
 import { ingestDue } from '@/lib/ingest'
 import { generateSet } from '@/lib/lottery/generate'
 import { pickWindow } from '@/lib/lottery/schedule'
 import type { NumberSet } from '@/lib/lottery/targets'
 
-export type Roll = { id: number; formula: FormulaId; seq: number; numbers: NumberSet }
+export type Roll = { id: number; formula: FormulaId; numbers: NumberSet }
 type Result<T> = { ok: true; value: T } | { ok: false; error: string }
-
-const ROLL_LIMIT = Number(process.env.ROLLS_PER_FORMULA ?? 3)
 
 const ERRORS: Record<string, string> = {
   draw_closed: 'ปิดรับเลขงวดนี้แล้ว',
-  roll_limit: `สุ่มสูตรนี้ครบ ${ROLL_LIMIT} ครั้งแล้ว`,
+  rolled_today: 'วันนี้สุ่มไปแล้ว สุ่มใหม่ได้พรุ่งนี้ 00:00 น.',
   roll_not_found: 'ไม่พบชุดเลขนี้',
-  '23505': `สุ่มสูตรนี้ครบ ${ROLL_LIMIT} ครั้งแล้ว`, // two tabs raced for the last roll
+  '23505': 'วันนี้สุ่มไปแล้ว สุ่มใหม่ได้พรุ่งนี้ 00:00 น.', // two tabs raced for today's roll
 }
 const fail = (e: { message?: string; code?: string }) => ({ ok: false as const, error: ERRORS[e.message ?? ''] ?? ERRORS[e.code ?? ''] ?? 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง' })
 
@@ -27,19 +25,19 @@ async function openDraw() {
   return w.state === 'open' ? w.draw : null
 }
 
-export async function rollAction(formula: string): Promise<Result<Roll>> {
+/** Today's single roll: one set from every formula. */
+export async function rollAllAction(): Promise<Result<Roll[]>> {
   const t0 = performance.now()
   const player = await requirePlayer()
-  if (!isFormulaId(formula)) return { ok: false, error: 'ไม่พบสูตรนี้' }
   const [draw, table] = await Promise.all([openDraw(), getCdfTable()])
   if (!draw) return { ok: false, error: ERRORS.draw_closed }
-  const numbers = generateSet(table[formula])
-  const { data, error } = await db.rpc('create_roll', {
-    p_player_id: player.id, p_draw_date: draw, p_formula: formula, p_numbers: numbers, p_limit: ROLL_LIMIT,
-  })
-  console.info(`[roll] ${formula} ${Math.round(performance.now() - t0)}ms`)
+  const t1 = performance.now()
+  const sets = Object.fromEntries(FORMULA_IDS.map((id) => [id, generateSet(table[id])]))
+  const { data, error } = await db.rpc('create_roll_batch', { p_player_id: player.id, p_draw_date: draw, p_sets: sets })
+  const ms = (a: number, b: number) => Math.round(b - a)
+  console.info(`[roll] ${ms(t0, performance.now())}ms (prep ${ms(t0, t1)} db ${ms(t1, performance.now())})`)
   if (error) return fail(error)
-  return { ok: true, value: { id: data.id, formula, seq: data.seq, numbers } }
+  return { ok: true, value: (data as { id: number; formula: FormulaId; numbers: NumberSet }[]) }
 }
 
 export async function pickAction(rollId: number): Promise<Result<{ rollId: number }>> {

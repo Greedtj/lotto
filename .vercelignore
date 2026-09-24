@@ -1,0 +1,9 @@
+.env*
+!.env.example
+.playwright-mcp
+.hallmark
+supabase/.temp
+research/*.py
+research/__pycache__
+tests
+*.tsbuildinfo

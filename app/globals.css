@@ -245,6 +245,31 @@ select {
   font-size: var(--text-2xl);
   letter-spacing: 0.12em;
 }
+.set__tail {
+  /* last 3 digits = 3 ตัวบน; drawn rule instead of colour so hits stay the only red */
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 6px;
+}
+.set__tails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-md);
+  margin-top: var(--space-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+.set__tails b {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  letter-spacing: 0.06em;
+}
+.set__tails [data-hit='true'] {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  padding: 0 var(--space-2xs);
+  border-radius: var(--radius-sm);
+}
 .set__cell[data-hit='true'] {
   background: var(--color-accent);
   color: var(--color-accent-ink);
@@ -270,17 +295,13 @@ select {
 }
 .card__head {
   display: flex;
+  flex-wrap: wrap; /* long formula names drop to their own line instead of squeezing the heading */
   justify-content: space-between;
   align-items: baseline;
-  gap: var(--space-sm);
+  gap: var(--space-2xs) var(--space-sm);
 }
 .card__name {
   font-size: var(--text-xl);
-}
-.card__actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--space-xs);
 }
 .badge {
   font-family: var(--font-mono);

@@ -1,6 +1,6 @@
 // Walk-forward backtest (admin only): draw t is predicted from draws before t only.
 // Kept as running sums so a new result only adds one step (no full re-run).
-import { FORMULAS, FORMULA_IDS, type FormulaId } from '@/lib/formulas'
+import { distribution, FORMULA_IDS, type FormulaId } from '@/lib/formulas'
 import { series, TARGETS, type DrawResult, type Target } from './targets'
 
 export const WARMUP = 100 // first draws are history only, never scored
@@ -50,7 +50,7 @@ export function backtestAll(draws: DrawResult[], rand: () => number = Math.rando
     for (const target of Object.keys(TARGETS)) {
       const { history, K } = series(draws, target)
       const tally = empty()
-      for (let i = WARMUP; i < history.length; i++) step(tally, FORMULAS[id].f(history.slice(0, i), K), history[i], K, rand)
+      for (let i = WARMUP; i < history.length; i++) step(tally, distribution(id, history.slice(0, i), K), history[i], K, rand)
       table[id][target] = tally
     }
   }
@@ -65,7 +65,7 @@ export function backtestAdd(table: BacktestTable, before: DrawResult[], latest: 
       const actual = TARGETS[target].values(latest).map(Number)
       if (!actual.length || history.length < WARMUP) continue
       table[id][target] ??= empty()
-      step(table[id][target], FORMULAS[id].f(history, K), actual, K, rand)
+      step(table[id][target], distribution(id, history, K), actual, K, rand)
     }
   }
   return table

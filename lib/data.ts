@@ -2,9 +2,10 @@ import 'server-only'
 import { cacheLife, cacheTag } from 'next/cache'
 import { db } from '@/lib/db'
 import type { FormulaId } from '@/lib/formulas'
-import { buildCdfTable } from '@/lib/lottery/generate'
+import { buildCdfTable, type CdfTable } from '@/lib/lottery/generate'
 import { denseRank, periodRange } from '@/lib/lottery/rank'
 import { DRAW_COLUMNS, fromRow, type DrawRow } from '@/lib/lottery/rows'
+import { bangkokDate } from '@/lib/lottery/schedule'
 import { CATEGORIES, type Category, type DrawResult, type NumberSet } from '@/lib/lottery/targets'
 
 // Cache tags. Everything below changes only when a result arrives or an admin edits.
@@ -35,12 +36,25 @@ export async function fetchAllResulted(): Promise<DrawResult[]> {
   return rows.map(fromRow)
 }
 
-/** Formula distributions for the next draw: identical for every player, so computed once per result. */
-export async function getCdfTable() {
-  'use cache'
-  cacheTag(TAG.results)
-  cacheLife('max')
-  return buildCdfTable(await getResultedDraws())
+// Measured on Vercel: 'use cache' reads from Server Actions still cost a DB-sized round trip,
+// so the per-draw distributions are memoized in the function instance instead, keyed by the
+// latest result change (every ingest / admin edit bumps draws.updated_at).
+let cdfMemo: { version: string; table: Promise<CdfTable> } | null = null
+
+async function resultsVersion(): Promise<string> {
+  const row = must(await db.from('draws').select('updated_at').eq('status', 'resulted').order('updated_at', { ascending: false }).limit(1).single()) as { updated_at: string }
+  return row.updated_at
+}
+
+/** Every formula's distributions for the next draw: identical for every player, so computed once per result change. */
+export async function getCdfTable(): Promise<CdfTable> {
+  const version = await resultsVersion()
+  if (cdfMemo?.version !== version) {
+    const table = fetchAllResulted().then(buildCdfTable)
+    table.catch(() => (cdfMemo = null)) // don't keep a failed load
+    cdfMemo = { version, table }
+  }
+  return cdfMemo.table
 }
 
 export async function getScheduledDraws(): Promise<string[]> {
@@ -112,15 +126,19 @@ export async function getLeaderboard(period: string, board: Board) {
   return denseRank(rows, score)
 }
 
-/** A player's rolls and pick for one draw. */
+/** A player's latest set per formula and pick for one draw, and whether today's roll is used. */
 export async function getMyDraw(playerId: number, draw: string) {
-  const [rolls, pick] = await Promise.all([
-    db.from('rolls').select('id,formula,seq,numbers').eq('player_id', playerId).eq('draw_date', draw).order('seq'),
+  const [rolls, pick, today] = await Promise.all([
+    db.from('rolls').select('id,formula,numbers').eq('player_id', playerId).eq('draw_date', draw).order('id'),
     db.from('picks').select('roll_id,formula,numbers').eq('player_id', playerId).eq('draw_date', draw).maybeSingle(),
+    db.from('rolls').select('id').eq('player_id', playerId).eq('roll_day', bangkokDate(new Date())).limit(1),
   ])
+  const latest = new Map<FormulaId, { id: number; formula: FormulaId; numbers: NumberSet }>()
+  for (const r of must(rolls) as { id: number; formula: FormulaId; numbers: NumberSet }[]) latest.set(r.formula, r)
   return {
-    rolls: must(rolls) as { id: number; formula: FormulaId; seq: number; numbers: NumberSet }[],
+    rolls: latest,
     pick: must(pick) as { roll_id: number; formula: FormulaId; numbers: NumberSet } | null,
+    rolledToday: (must(today) as unknown[]).length > 0,
   }
 }
 

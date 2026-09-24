@@ -1,36 +1,45 @@
 'use client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
-import { pickAction, refreshResultsAction, rollAction, type Roll } from '@/app/actions/play'
+import { pickAction, refreshResultsAction, rollAllAction, type Roll } from '@/app/actions/play'
 import { NumberSet } from '@/components/NumberSet'
 import type { FormulaId } from '@/lib/formulas'
 import type { NumberSet as Set } from '@/lib/lottery/targets'
 
-export type FormulaCard = { id: FormulaId; name: string; desc: string; latest: Roll | null; used: number }
+export type FormulaCard = { id: FormulaId; name: string; desc: string; latest: Roll | null }
 type Window = { state: 'open'; closesAt: string } | { state: 'waiting'; draw: string } | { state: 'none' }
 
 type Picked = { rollId: number; formula: string; numbers: Set } | null
 
-export function Play(props: { cards: FormulaCard[]; limit: number; picked: Picked; window: Window }) {
+export function Play(props: { cards: FormulaCard[]; rolledToday: boolean; picked: Picked; window: Window }) {
   const [cards, setCards] = useState(props.cards)
+  const [rolledToday, setRolledToday] = useState(props.rolledToday)
   const [picked, setPicked] = useState<Picked>(props.picked)
+  const [rollError, setRollError] = useState<string>()
   const [errors, setErrors] = useState<Partial<Record<FormulaId, string>>>({})
-  const [busy, setBusy] = useState<string | null>(null)
+  const [rolling, setRolling] = useState(false)
   const [, startTransition] = useTransition()
   const open = props.window.state === 'open'
+  const hasSets = cards.some((c) => c.latest)
 
   useResultsRefresh(props.window)
 
   const setError = (id: FormulaId, e?: string) => setErrors((x) => ({ ...x, [id]: e }))
 
-  function roll(id: FormulaId) {
-    setBusy(`roll:${id}`)
-    setError(id)
+  /** Today's single roll: one set from every formula. */
+  function rollAll() {
+    setRolling(true)
+    setRollError(undefined)
     startTransition(async () => {
-      const r = await rollAction(id)
-      setBusy(null)
-      if (!r.ok) return setError(id, r.error)
-      setCards((cs) => cs.map((c) => (c.id === id ? { ...c, latest: r.value, used: r.value.seq } : c)))
+      const r = await rollAllAction()
+      setRolling(false)
+      if (!r.ok) {
+        if (r.error.startsWith('วันนี้สุ่ม')) setRolledToday(true)
+        return setRollError(r.error)
+      }
+      const byFormula = new Map(r.value.map((x) => [x.formula, x]))
+      setCards((cs) => cs.map((c) => ({ ...c, latest: byFormula.get(c.id) ?? c.latest })))
+      setRolledToday(true)
     })
   }
 
@@ -60,10 +69,17 @@ export function Play(props: { cards: FormulaCard[]; limit: number; picked: Picke
         <p className="meta" style={{ margin: 0 }}>เลือกได้ 1 ชุดต่องวด กดเลือกชุดใหม่จะแทนชุดเดิม</p>
       </section>
 
+      <button className="btn btn--primary btn--block" onClick={rollAll} disabled={!open || rolledToday || rolling} data-loading={rolling} aria-describedby="roll-note">
+        {rolling ? 'กำลังสุ่ม 8 สูตร…' : rolledToday ? 'วันนี้สุ่มแล้ว' : 'สุ่มเลขวันนี้ (ครบ 8 สูตร)'}
+      </button>
+      <p className={rollError ? 'error' : 'meta'} id="roll-note" role={rollError ? 'alert' : undefined} style={{ marginTop: 'var(--space-xs)' }}>
+        {rollError ?? (rolledToday ? 'สุ่มใหม่ได้พรุ่งนี้ 00:00 น. · ชุดด้านล่างยังเลือกได้จนปิดรับ' : 'กดได้วันละ 1 ครั้ง ได้เลขจากทุกสูตรพร้อมกัน')}
+      </p>
+
       <hr className="rule" />
       <h2 className="title">8 สูตร</h2>
+      {!hasSets && <p className="muted">ยังไม่มีชุดเลขของงวดนี้ กดสุ่มด้านบนก่อน</p>}
       {cards.map((c) => {
-        const left = props.limit - c.used
         const isPicked = c.latest !== null && c.latest.id === picked?.rollId
         return (
           <article key={c.id} className={isPicked ? 'card card--picked' : 'card'} aria-labelledby={`f-${c.id}`}>
@@ -73,14 +89,9 @@ export function Play(props: { cards: FormulaCard[]; limit: number; picked: Picke
             </div>
             <p className="meta" style={{ margin: 0 }}>{c.desc}</p>
             <NumberSet set={c.latest?.numbers ?? null} />
-            <div className="card__actions">
-              <button className="btn" onClick={() => roll(c.id)} disabled={!open || left <= 0 || busy !== null} data-loading={busy === `roll:${c.id}`} aria-describedby={errors[c.id] ? `e-${c.id}` : undefined}>
-                {busy === `roll:${c.id}` ? 'กำลังสุ่ม…' : c.used === 0 ? `สุ่ม (${left}/${props.limit})` : left > 0 ? `สุ่มใหม่ (${left}/${props.limit})` : 'สุ่มครบแล้ว'}
-              </button>
-              <button className={isPicked ? 'btn btn--done' : 'btn'} onClick={() => pick(c)} disabled={!open || !c.latest || isPicked}>
-                {isPicked ? 'เลือกแล้ว ✓' : 'เลือกชุดนี้'}
-              </button>
-            </div>
+            <button className={isPicked ? 'btn btn--done btn--block' : 'btn btn--block'} onClick={() => pick(c)} disabled={!open || !c.latest || isPicked} aria-describedby={errors[c.id] ? `e-${c.id}` : undefined}>
+              {isPicked ? 'เลือกแล้ว ✓' : 'เลือกชุดนี้'}
+            </button>
             {errors[c.id] && <p className="error" id={`e-${c.id}`} role="alert" style={{ margin: 'var(--space-xs) 0 0' }}>{errors[c.id]}</p>}
           </article>
         )
