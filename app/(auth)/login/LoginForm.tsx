@@ -1,20 +1,26 @@
 'use client'
-import { useActionState, useState } from 'react'
+import Link from 'next/link'
+import { useActionState } from 'react'
 import { authAction, type AuthState } from '@/app/actions/auth'
 import { NameInput } from '@/components/NameInput'
 
-export function LoginForm() {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
+export type Mode = 'signin' | 'signup'
+
+/**
+ * Mode is the route (/login or /signup) and the tabs are plain links, so they work before hydration;
+ * the form itself posts to a Server Action, which also works before JS loads.
+ */
+export function LoginForm({ mode }: { mode: Mode }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(authAction, {})
   return (
     <form action={action} noValidate>
-      <div className="tabs" role="tablist" aria-label="เลือกโหมด">
+      <nav className="tabs" aria-label="เลือกโหมด">
         {(['signin', 'signup'] as const).map((m) => (
-          <button key={m} type="button" role="tab" aria-selected={mode === m} className="tab" aria-current={mode === m ? 'page' : undefined} onClick={() => setMode(m)}>
+          <Link key={m} href={m === 'signup' ? '/signup' : '/login'} replace scroll={false} className="tab" aria-current={mode === m ? 'page' : undefined}>
             {m === 'signin' ? 'เข้าสู่ระบบ' : 'สมัครใหม่'}
-          </button>
+          </Link>
         ))}
-      </div>
+      </nav>
       <input type="hidden" name="mode" value={mode} />
       <div className="field">
         <label className="label" htmlFor="name">ชื่อผู้ใช้ (แสดงในอันดับ · ไม่มีเว้นวรรค)</label>
