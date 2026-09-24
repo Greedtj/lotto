@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore, useTransition } from 'react'
 import { pickAction, refreshResultsAction, rollAllAction, type Roll } from '@/app/actions/play'
 import { NumberSet } from '@/components/NumberSet'
 import type { FormulaId } from '@/lib/formulas'
+import type { RollStatus } from '@/lib/data'
 import type { NumberSet as Set } from '@/lib/lottery/targets'
 
 export type FormulaCard = { id: FormulaId; name: string; desc: string; latest: Roll | null }
@@ -11,9 +12,12 @@ type Window = { state: 'open'; closesAt: string } | { state: 'waiting'; draw: st
 
 type Picked = { rollId: number; formula: string; numbers: Set } | null
 
-export function Play(props: { cards: FormulaCard[]; rolledToday: boolean; picked: Picked; window: Window }) {
+export function Play(props: { cards: FormulaCard[]; rollStatus: RollStatus; picked: Picked; window: Window }) {
   const [cards, setCards] = useState(props.cards)
-  const [rolledToday, setRolledToday] = useState(props.rolledToday)
+  const [used, setUsed] = useState(props.rollStatus.used)
+  const perDay = props.rollStatus.per_day
+  const left = perDay === null ? null : Math.max(0, perDay - used)
+  const outOfRolls = left === 0
   const [picked, setPicked] = useState<Picked>(props.picked)
   const [rollError, setRollError] = useState<string>()
   const [errors, setErrors] = useState<Partial<Record<FormulaId, string>>>({})
@@ -26,7 +30,7 @@ export function Play(props: { cards: FormulaCard[]; rolledToday: boolean; picked
 
   const setError = (id: FormulaId, e?: string) => setErrors((x) => ({ ...x, [id]: e }))
 
-  /** Today's single roll: one set from every formula. */
+  /** One roll = one set from every formula; the daily allowance is the admin's roll policy. */
   function rollAll() {
     setRolling(true)
     setRollError(undefined)
@@ -34,12 +38,12 @@ export function Play(props: { cards: FormulaCard[]; rolledToday: boolean; picked
       const r = await rollAllAction()
       setRolling(false)
       if (!r.ok) {
-        if (r.error.startsWith('วันนี้สุ่ม')) setRolledToday(true)
+        if (r.error.startsWith('ใช้สิทธิ์สุ่ม')) setUsed(perDay ?? used)
         return setRollError(r.error)
       }
       const byFormula = new Map(r.value.map((x) => [x.formula, x]))
       setCards((cs) => cs.map((c) => ({ ...c, latest: byFormula.get(c.id) ?? c.latest })))
-      setRolledToday(true)
+      setUsed((u) => u + 1)
     })
   }
 
@@ -69,11 +73,14 @@ export function Play(props: { cards: FormulaCard[]; rolledToday: boolean; picked
         <p className="meta" style={{ margin: 0 }}>เลือกได้ 1 ชุดต่องวด กดเลือกชุดใหม่จะแทนชุดเดิม</p>
       </section>
 
-      <button className="btn btn--primary btn--block" onClick={rollAll} disabled={!open || rolledToday || rolling} data-loading={rolling} aria-describedby="roll-note">
-        {rolling ? 'กำลังสุ่ม 8 สูตร…' : rolledToday ? 'วันนี้สุ่มแล้ว' : 'สุ่มเลขวันนี้ (ครบ 8 สูตร)'}
+      <button className="btn btn--primary btn--block" onClick={rollAll} disabled={!open || outOfRolls || rolling} data-loading={rolling} aria-describedby="roll-note">
+        {rolling ? 'กำลังสุ่ม 8 สูตร…' : outOfRolls ? 'วันนี้สุ่มครบแล้ว' : left === null ? 'สุ่มเลข (ครบ 8 สูตร)' : `สุ่มเลข (เหลือ ${left}/${perDay})`}
       </button>
       <p className={rollError ? 'error' : 'meta'} id="roll-note" role={rollError ? 'alert' : undefined} style={{ marginTop: 'var(--space-xs)' }}>
-        {rollError ?? (rolledToday ? 'สุ่มใหม่ได้พรุ่งนี้ 00:00 น. · ชุดด้านล่างยังเลือกได้จนปิดรับ' : 'กดได้วันละ 1 ครั้ง ได้เลขจากทุกสูตรพร้อมกัน')}
+        {rollError ??
+          (outOfRolls
+            ? 'สุ่มใหม่ได้พรุ่งนี้ 00:00 น. · ชุดด้านล่างยังเลือกได้จนปิดรับ'
+            : `กด 1 ครั้ง ได้เลขจากทุกสูตรพร้อมกัน · ${perDay === null ? 'สุ่มได้ไม่จำกัด' : `วันละ ${perDay} ครั้ง`}`)}
       </p>
 
       <hr className="rule" />

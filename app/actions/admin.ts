@@ -57,3 +57,23 @@ export async function resetPinAction(_: AdminState, form: FormData): Promise<Adm
   await resetPin(id, pin)
   return { message: 'รีเซ็ต PIN แล้ว' }
 }
+
+/** Roll policy: 1 or 3 rolls per day, or unlimited (empty). */
+export async function rollPolicyAction(_: AdminState, form: FormData): Promise<AdminState> {
+  await requireAdmin()
+  const v = String(form.get('per_day'))
+  const perDay = v === 'unlimited' ? null : Number(v)
+  if (perDay !== null && ![1, 3].includes(perDay)) return { error: 'เลือกได้แค่ วันละ 1 / วันละ 3 / ไม่จำกัด' }
+  const { error } = await db.from('settings').update({ rolls_per_day: perDay, updated_at: new Date().toISOString() }).eq('id', 1)
+  if (error) return { error: error.message }
+  return { message: `ตั้งเป็น${perDay === null ? 'สุ่มได้ไม่จำกัด' : `วันละ ${perDay} ครั้ง`}แล้ว มีผลทันที` }
+}
+
+/** Give every player their full allowance again, counted from now. */
+export async function resetRollsAction(): Promise<AdminState> {
+  await requireAdmin()
+  const now = new Date().toISOString()
+  const { error } = await db.from('settings').update({ rolls_reset_at: now, updated_at: now }).eq('id', 1)
+  if (error) return { error: error.message }
+  return { message: 'รีเซ็ตสิทธิ์สุ่มของทุกคนแล้ว' }
+}

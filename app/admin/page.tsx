@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { fetchResultAction, resetPinAction, saveResultAction, scheduleAction } from '@/app/actions/admin'
+import { fetchResultAction, resetPinAction, resetRollsAction, rollPolicyAction, saveResultAction, scheduleAction } from '@/app/actions/admin'
 import { requireAdmin } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { FORMULAS, FORMULA_IDS } from '@/lib/formulas'
@@ -31,16 +31,47 @@ const TARGET_LABEL: Record<string, string> = { top3: '3 บน', top2: '2 บน
 
 async function Admin() {
   await requireAdmin()
-  const [scheduled, players, bt] = await Promise.all([
+  const [scheduled, players, bt, settings] = await Promise.all([
     db.from('draws').select('draw_date').eq('status', 'scheduled').order('draw_date'),
     db.from('players').select('id,username,locked_until').order('username'),
     db.from('backtest').select('through_date,tally').eq('id', 1).maybeSingle(),
+    db.from('settings').select('rolls_per_day,rolls_reset_at').eq('id', 1).single(),
   ])
+  const perDay = settings.data?.rolls_per_day as number | null | undefined
+  const resetAt = settings.data?.rolls_reset_at as string | undefined
   const dates = (scheduled.data ?? []).map((d) => d.draw_date as string)
   const tally = bt.data?.tally as BacktestTable | undefined
 
   return (
     <>
+      <section className="card">
+        <h2 className="card__name">การสุ่ม</h2>
+        <p className="meta">
+          ตอนนี้: <b>{perDay === null ? 'ไม่จำกัด' : `วันละ ${perDay ?? 1} ครั้ง`}</b> · นับใหม่ทุก 00:00 น.
+          {resetAt && !resetAt.startsWith('-') && ` · รีเซ็ตล่าสุด ${new Date(resetAt).toLocaleString('th-TH', { timeZone: 'Asia/Bangkok', dateStyle: 'medium', timeStyle: 'short' })}`}
+        </p>
+        <ActionForm action={rollPolicyAction} submit="บันทึกโหมดสุ่ม">
+          <fieldset className="field" style={{ border: 0, padding: 0, margin: '0 0 var(--space-md)' }}>
+            <legend className="label">สุ่มได้</legend>
+            {[
+              ['1', 'วันละ 1 ครั้ง'],
+              ['3', 'วันละ 3 ครั้ง'],
+              ['unlimited', 'ไม่จำกัด'],
+            ].map(([v, label]) => (
+              <label key={v} className="row" style={{ justifyContent: 'flex-start', gap: 'var(--space-xs)', minHeight: 'var(--tap)' }}>
+                <input type="radio" name="per_day" value={v} defaultChecked={(perDay === null ? 'unlimited' : String(perDay ?? 1)) === v} />
+                {label}
+              </label>
+            ))}
+          </fieldset>
+        </ActionForm>
+        <hr className="rule" />
+        <p className="meta">ให้ทุกคนสุ่มได้เต็มสิทธิ์อีกครั้ง นับตั้งแต่ตอนกด</p>
+        <ActionForm action={resetRollsAction} submit="รีเซ็ตสิทธิ์สุ่มทุกคน">
+          <></>
+        </ActionForm>
+      </section>
+
       <section className="card">
         <h2 className="card__name">งวดที่เปิดอยู่</h2>
         <ul className="list">{dates.map((d) => <li key={d}>{thaiDate(d)} <span className="meta">({d})</span></li>)}</ul>

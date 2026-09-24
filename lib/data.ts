@@ -5,7 +5,6 @@ import type { FormulaId } from '@/lib/formulas'
 import { buildCdfTable, type CdfTable } from '@/lib/lottery/generate'
 import { denseRank, periodRange } from '@/lib/lottery/rank'
 import { DRAW_COLUMNS, fromRow, type DrawRow } from '@/lib/lottery/rows'
-import { bangkokDate } from '@/lib/lottery/schedule'
 import { CATEGORIES, type Category, type DrawResult, type NumberSet } from '@/lib/lottery/targets'
 
 // Cache tags. Everything below changes only when a result arrives or an admin edits.
@@ -126,19 +125,21 @@ export async function getLeaderboard(period: string, board: Board) {
   return denseRank(rows, score)
 }
 
-/** A player's latest set per formula and pick for one draw, and whether today's roll is used. */
+export type RollStatus = { used: number; per_day: number | null }
+
+/** A player's latest set per formula and pick for one draw, and how many rolls are left in the current window. */
 export async function getMyDraw(playerId: number, draw: string) {
   const [rolls, pick, today] = await Promise.all([
     db.from('rolls').select('id,formula,numbers').eq('player_id', playerId).eq('draw_date', draw).order('id'),
     db.from('picks').select('roll_id,formula,numbers').eq('player_id', playerId).eq('draw_date', draw).maybeSingle(),
-    db.from('rolls').select('id').eq('player_id', playerId).eq('roll_day', bangkokDate(new Date())).limit(1),
+    db.rpc('roll_status', { p_player_id: playerId }).single(),
   ])
   const latest = new Map<FormulaId, { id: number; formula: FormulaId; numbers: NumberSet }>()
   for (const r of must(rolls) as { id: number; formula: FormulaId; numbers: NumberSet }[]) latest.set(r.formula, r)
   return {
     rolls: latest,
     pick: must(pick) as { roll_id: number; formula: FormulaId; numbers: NumberSet } | null,
-    rolledToday: (must(today) as unknown[]).length > 0,
+    status: must(today) as RollStatus,
   }
 }
 

@@ -14,9 +14,8 @@ type Result<T> = { ok: true; value: T } | { ok: false; error: string }
 
 const ERRORS: Record<string, string> = {
   draw_closed: 'ปิดรับเลขงวดนี้แล้ว',
-  rolled_today: 'วันนี้สุ่มไปแล้ว สุ่มใหม่ได้พรุ่งนี้ 00:00 น.',
+  roll_limit: 'ใช้สิทธิ์สุ่มของวันนี้ครบแล้ว สุ่มใหม่ได้พรุ่งนี้ 00:00 น.',
   roll_not_found: 'ไม่พบชุดเลขนี้',
-  '23505': 'วันนี้สุ่มไปแล้ว สุ่มใหม่ได้พรุ่งนี้ 00:00 น.', // two tabs raced for today's roll
 }
 const fail = (e: { message?: string; code?: string }) => ({ ok: false as const, error: ERRORS[e.message ?? ''] ?? ERRORS[e.code ?? ''] ?? 'เกิดข้อผิดพลาด ลองใหม่อีกครั้ง' })
 
@@ -25,7 +24,7 @@ async function openDraw() {
   return w.state === 'open' ? w.draw : null
 }
 
-/** Today's single roll: one set from every formula. */
+/** One roll = one set from every formula. How many per day is the admin's roll policy (enforced in the DB). */
 export async function rollAllAction(): Promise<Result<Roll[]>> {
   const t0 = performance.now()
   const player = await requirePlayer()

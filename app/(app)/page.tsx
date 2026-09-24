@@ -11,7 +11,7 @@ export default function PlayPage() {
     <main className="page">
       <div className="masthead">
         <span>สุ่มเลข</span>
-        <span>วันละ 1 ครั้ง · 1 ชุดต่องวด</span>
+        <span>1 ชุดต่องวด</span>
       </div>
       <Suspense fallback={<p className="meta">กำลังโหลด…</p>}>
         <Board />
@@ -24,7 +24,7 @@ async function Board() {
   const player = await requirePlayer()
   const w = pickWindow((await getScheduledDraws()).map((date) => ({ date, resulted: false })), new Date())
   const draw = w.state === 'none' ? null : w.draw
-  const mine = draw ? await getMyDraw(player.id, draw) : { rolls: new Map(), pick: null, rolledToday: false }
+  const mine = draw ? await getMyDraw(player.id, draw) : { rolls: new Map(), pick: null, status: { used: 0, per_day: 1 } }
 
   const cards: FormulaCard[] = FORMULA_IDS.map((id) => ({ id, name: FORMULAS[id].name, desc: FORMULAS[id].desc, latest: mine.rolls.get(id) ?? null }))
 
@@ -36,7 +36,7 @@ async function Board() {
       <Play
         key={draw ?? 'none'}
         cards={cards}
-        rolledToday={mine.rolledToday}
+        rollStatus={mine.status}
         picked={mine.pick ? { rollId: mine.pick.roll_id, formula: FORMULAS[mine.pick.formula].name, numbers: mine.pick.numbers } : null}
         window={w.state === 'open' ? { state: 'open', closesAt: w.closesAt.toISOString() } : w.state === 'waiting' ? { state: 'waiting', draw: w.draw } : { state: 'none' }}
       />
