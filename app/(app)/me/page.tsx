@@ -3,9 +3,10 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { logoutAction } from '@/app/actions/auth'
 import { Avatar } from '@/components/Avatar'
-import { requirePlayer } from '@/lib/auth'
+import { getRenameInfo, requirePlayer } from '@/lib/auth'
 import { getMyTotals } from '@/lib/data'
 import { CATEGORIES, CATEGORY_LABEL } from '@/lib/lottery/targets'
+import { RenameForm } from './RenameForm'
 
 export const metadata: Metadata = { title: 'โปรไฟล์' }
 
@@ -25,7 +26,7 @@ export default function MePage() {
 
 async function Profile() {
   const me = await requirePlayer()
-  const { played, totals } = await getMyTotals(me.id)
+  const [{ played, totals }, renameInfo] = await Promise.all([getMyTotals(me.id), getRenameInfo(me.id)])
   const sum = CATEGORIES.reduce((s, c) => s + totals[c], 0)
   return (
     <>
@@ -45,6 +46,9 @@ async function Profile() {
           </div>
         ))}
       </div>
+      <hr className="rule" />
+      <h2 className="label" style={{ marginBottom: 'var(--space-xs)' }}>เปลี่ยนชื่อ</h2>
+      <RenameForm admin={renameInfo.admin} nextAt={renameInfo.nextAt} />
       <hr className="rule" />
       <Link className="btn btn--block" href="/history?tab=mine">ดูเลขที่เคยเลือก</Link>
       {me.admin && (

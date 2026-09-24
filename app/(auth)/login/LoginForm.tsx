@@ -1,6 +1,7 @@
 'use client'
 import { useActionState, useState } from 'react'
 import { authAction, type AuthState } from '@/app/actions/auth'
+import { NameInput } from '@/components/NameInput'
 
 export function LoginForm() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -16,8 +17,8 @@ export function LoginForm() {
       </div>
       <input type="hidden" name="mode" value={mode} />
       <div className="field">
-        <label className="label" htmlFor="name">ชื่อผู้ใช้ (แสดงในอันดับ)</label>
-        <input className="input" id="name" name="name" autoComplete="username" required minLength={2} maxLength={20} defaultValue={state.name} aria-invalid={Boolean(state.error)} />
+        <label className="label" htmlFor="name">ชื่อผู้ใช้ (แสดงในอันดับ · ไม่มีเว้นวรรค)</label>
+        <NameInput id="name" name="name" autoComplete="username" required minLength={2} defaultValue={state.name} aria-invalid={Boolean(state.error)} />
       </div>
       <div className="field">
         <label className="label" htmlFor="pin">PIN 4 หลัก</label>
