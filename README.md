@@ -55,3 +55,11 @@ npm test
   ```
 - Deploy: push `main` → Vercel deploy production อัตโนมัติ · branch อื่น → preview URL · สำรอง: `vercel deploy --prod` (`.vercelignore` กัน `.env*`)
 - GitHub: https://github.com/Greedtj/lotto
+
+### Preview (แยกข้อมูลจาก production)
+
+- Vercel Preview ใช้ schema `preview` ในโปรเจค Supabase เดียวกัน (`SUPABASE_DB_SCHEMA=preview` ตั้งเฉพาะ Preview) · production ใช้ `public`
+- สร้าง/รีเซ็ต schema: `npm run preview:schema` สร้าง SQL จาก `supabase/migrations/*` (แปลง `public.` → `preview.`) แล้วรันใน SQL editor · **รันซ้ำ = ล้างข้อมูล preview**
+- migration ใหม่ทุกไฟล์ต้องเขียน `public.` นำหน้าทุก object และรันกับ preview ด้วย
+- seed preview: เหมือน seed production แต่เพิ่ม `SUPABASE_DB_SCHEMA=preview` (ข้าม GLO ได้ด้วย `--skip-glo`)
+- ต้องเปิด `preview` ใน Supabase → Data API → Exposed schemas

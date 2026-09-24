@@ -9,7 +9,8 @@ import { fromRow, toRow, DRAW_COLUMNS, type DrawRow } from '../lib/lottery/rows'
 import { nextDefaultDrawDate } from '../lib/lottery/schedule'
 import type { DrawResult } from '../lib/lottery/targets'
 
-const db = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } })
+const schema = process.env.SUPABASE_DB_SCHEMA || 'public'
+const db = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SECRET_KEY!, { db: { schema }, auth: { persistSession: false } })
 const must = <T>({ data, error }: { data: T; error: unknown }) => {
   if (error) throw error
   return data
@@ -17,6 +18,7 @@ const must = <T>({ data, error }: { data: T; error: unknown }) => {
 
 async function main() {
   const hist = draws as DrawResult[]
+  console.log(`schema: ${schema}`)
   console.log(`draws: upserting ${hist.length} from myhora`)
   for (let i = 0; i < hist.length; i += 500)
     must(await db.from('draws').upsert(hist.slice(i, i + 500).map((d) => toRow(d, 'myhora')), { ignoreDuplicates: true }))
