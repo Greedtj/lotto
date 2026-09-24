@@ -53,4 +53,5 @@ npm test
   mkdir -p /tmp/lotto-prod/.vercel && cp .vercel/project.json /tmp/lotto-prod/.vercel/ && cd /tmp/lotto-prod
   ADMIN_PIN=xxxx vercel env run -e production -- <repo>/node_modules/.bin/tsx --tsconfig <repo>/tsconfig.json <repo>/scripts/seed.ts
   ```
-- Deploy: `vercel deploy --prod` (`.vercelignore` กัน `.env*` ไม่ให้ถูกอัปโหลด)
+- Deploy: push `main` → Vercel deploy production อัตโนมัติ · branch อื่น → preview URL · สำรอง: `vercel deploy --prod` (`.vercelignore` กัน `.env*`)
+- GitHub: https://github.com/Greedtj/lotto
